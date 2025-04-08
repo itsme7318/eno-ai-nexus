@@ -95,13 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      toast("Welcome back!", {
+      toast.success("Welcome back!", {
         description: "Logged in successfully"
       });
     } catch (error) {
-      toast("Login failed", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
+      toast.error("Login failed", {
+        description: error instanceof Error ? error.message : "An unknown error occurred"
       });
       throw error;
     } finally {
@@ -128,13 +127,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast("Registration successful!", {
+      toast.success("Registration successful!", {
         description: "Your account has been created."
       });
     } catch (error) {
-      toast("Registration failed", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
+      toast.error("Registration failed", {
+        description: error instanceof Error ? error.message : "An unknown error occurred"
       });
       throw error;
     } finally {
@@ -151,12 +149,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setUser(null);
-      toast("Logged out successfully");
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Error signing out:", error);
-      toast("Sign out failed", {
-        description: "An error occurred while signing out",
-        variant: "destructive",
+      toast.error("Sign out failed", {
+        description: "An error occurred while signing out"
       });
     }
   };
