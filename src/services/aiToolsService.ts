@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
 
 export interface AITool {
   id: string;
@@ -20,7 +21,9 @@ export interface AITool {
 
 export const fetchAllAITools = async (): Promise<AITool[]> => {
   try {
-    const { data, error } = await supabase.from("ai_tools").select("*");
+    const { data, error } = await supabase
+      .from("ai_tools")
+      .select("*") as { data: AITool[] | null, error: any };
     
     if (error) {
       throw error;
@@ -39,7 +42,7 @@ export const fetchToolsByCategory = async (category: string): Promise<AITool[]> 
     const { data, error } = await supabase
       .from("ai_tools")
       .select("*")
-      .eq("category", category);
+      .eq("category", category) as { data: AITool[] | null, error: any };
     
     if (error) {
       throw error;
@@ -59,7 +62,7 @@ export const fetchToolById = async (id: string): Promise<AITool | null> => {
       .from("ai_tools")
       .select("*")
       .eq("id", id)
-      .single();
+      .single() as { data: AITool | null, error: any };
     
     if (error) {
       throw error;
@@ -87,7 +90,7 @@ export const trackToolUsage = async (toolId: string): Promise<void> => {
       .select("*")
       .eq("user_id", user.user.id)
       .eq("tool_id", toolId)
-      .single();
+      .single() as { data: any | null, error: any };
     
     if (fetchError && fetchError.code !== "PGRST116") { // PGRST116 means no rows returned
       throw fetchError;
@@ -101,7 +104,7 @@ export const trackToolUsage = async (toolId: string): Promise<void> => {
           last_used: new Date().toISOString(),
           use_count: existingRecord.use_count + 1
         })
-        .eq("id", existingRecord.id);
+        .eq("id", existingRecord.id) as { error: any };
       
       if (updateError) {
         throw updateError;
@@ -115,7 +118,7 @@ export const trackToolUsage = async (toolId: string): Promise<void> => {
           tool_id: toolId,
           last_used: new Date().toISOString(),
           use_count: 1
-        });
+        }) as { error: any };
       
       if (insertError) {
         throw insertError;
@@ -140,13 +143,13 @@ export const fetchRecentlyUsedTools = async (limit: number = 4): Promise<AITool[
       .select("tool_id, last_used")
       .eq("user_id", user.user.id)
       .order("last_used", { ascending: false })
-      .limit(limit);
+      .limit(limit) as { data: any[] | null, error: any };
     
     if (error) {
       throw error;
     }
     
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return [];
     }
     
@@ -155,10 +158,14 @@ export const fetchRecentlyUsedTools = async (limit: number = 4): Promise<AITool[
     const { data: tools, error: toolsError } = await supabase
       .from("ai_tools")
       .select("*")
-      .in("id", toolIds);
+      .in("id", toolIds) as { data: AITool[] | null, error: any };
     
     if (toolsError) {
       throw toolsError;
+    }
+    
+    if (!tools) {
+      return [];
     }
     
     // Sort tools in the same order as the user_tools records
