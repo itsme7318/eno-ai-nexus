@@ -1,13 +1,16 @@
 
 import React from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Table } from "lucide-react";
 import AICard from "@/components/dashboard/AICard";
 import { AITool, fetchAllAITools } from "@/services/aiToolsService";
 import { useQuery } from "@tanstack/react-query";
 import useIconMapping from "@/hooks/useIconMapping";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const FeaturedTools: React.FC = () => {
   const { getIconByName } = useIconMapping();
+  const navigate = useNavigate();
   const { data: tools, isLoading, error } = useQuery({
     queryKey: ['featuredTools'],
     queryFn: fetchAllAITools
@@ -39,22 +42,34 @@ const FeaturedTools: React.FC = () => {
   const featuredTools = tools.slice(0, 8);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {featuredTools.map((tool) => (
-        <AICard
-          key={tool.id}
-          id={tool.id}
-          name={tool.name}
-          description={tool.description}
-          icon={getIconByName(tool.icon_name)}
-          color={tool.color}
-          category={tool.category}
-          isNew={tool.is_new}
-          isPro={tool.is_pro}
-          url={tool.url}
-          external_url={tool.external_url}
-        />
-      ))}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {featuredTools.map((tool) => (
+          <AICard
+            key={tool.id}
+            id={tool.id}
+            name={tool.name}
+            description={tool.description}
+            icon={getIconByName(tool.icon_name)}
+            color={tool.color}
+            category={tool.category}
+            isNew={tool.is_new}
+            isPro={tool.is_pro}
+            url={tool.url}
+            external_url={tool.external_url}
+          />
+        ))}
+      </div>
+      
+      <div className="flex justify-center">
+        <Button 
+          onClick={() => navigate('/ai-tools-table')}
+          className="flex items-center gap-2"
+        >
+          <Table size={18} />
+          View Complete AI Tools Table
+        </Button>
+      </div>
     </div>
   );
 };

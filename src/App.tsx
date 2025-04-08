@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import ToolDetail from "./pages/ToolDetail";
 import CategoryPage from "./pages/CategoryPage";
 import NotFound from "./pages/NotFound";
+import AIToolsTable from "./pages/AIToolsTable";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient({
@@ -65,6 +66,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CategoryPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/ai-tools-table" 
+        element={
+          <ProtectedRoute>
+            <AIToolsTable />
           </ProtectedRoute>
         } 
       />

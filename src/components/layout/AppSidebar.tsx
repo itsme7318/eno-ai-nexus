@@ -18,7 +18,8 @@ import {
   FileText, 
   BarChart3, 
   Settings, 
-  LogOut
+  LogOut,
+  Table
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +37,7 @@ const AppSidebar: React.FC = () => {
     { name: "Image Generation", icon: <ImageIcon size={20} />, path: "/image-generation" },
     { name: "Writing", icon: <FileText size={20} />, path: "/writing" },
     { name: "Analytics", icon: <BarChart3 size={20} />, path: "/analytics" },
+    { name: "AI Tools Table", icon: <Table size={20} />, path: "/ai-tools-table" },
     { name: "Settings", icon: <Settings size={20} />, path: "/settings" },
   ];
 
