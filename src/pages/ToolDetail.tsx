@@ -4,76 +4,60 @@ import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ExternalLink, Star } from "lucide-react";
-
-// This is a placeholder - in a real app, you'd fetch this data from an API
-const toolsData: Record<string, {
-  name: string;
-  description: string;
-  longDescription: string;
-  category: string;
-  icon: JSX.Element;
-  color: string;
-  features: string[];
-  pricing: string;
-  externalUrl: string;
-  rating: number;
-}> = {
-  "lovable-ai": {
-    name: "Lovable AI",
-    description: "Build React web applications through simple conversations.",
-    longDescription: "Lovable AI is a revolutionary platform that allows you to create React web applications simply by having a conversation. Describe what you want to build, and Lovable AI will generate the code for you, making web development accessible to everyone.",
-    category: "Development",
-    icon: <span className="text-2xl">🚀</span>,
-    color: "#8B5CF6",
-    features: [
-      "Build React apps through conversation",
-      "Generate code automatically",
-      "Preview in real-time",
-      "Easy deployment",
-      "Responsive design"
-    ],
-    pricing: "Free tier available, Pro plans from $20/month",
-    externalUrl: "https://lovable.dev",
-    rating: 4.8
-  },
-  "gamma-ai": {
-    name: "Gamma AI",
-    description: "Create beautiful presentations in seconds using AI.",
-    longDescription: "Gamma AI transforms how presentations are created. Say goodbye to hours spent designing slides. With Gamma AI, you can create stunning presentations in seconds using AI. Simply describe your content, and Gamma AI will generate professional slides with perfect layouts and visuals.",
-    category: "Presentation",
-    icon: <span className="text-2xl">🎯</span>,
-    color: "#F59E0B",
-    features: [
-      "AI-generated presentation slides",
-      "Beautiful templates",
-      "Smart content formatting",
-      "Automatic visualization of data",
-      "One-click export to PowerPoint"
-    ],
-    pricing: "Free for basic features, $8/month for Pro",
-    externalUrl: "https://gamma.app",
-    rating: 4.7
-  }
-};
+import { ArrowLeft, ExternalLink, Star, Loader2, AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchToolById, trackToolUsage } from "@/services/aiToolsService";
+import { toast } from "sonner";
+import useIconMapping from "@/hooks/useIconMapping";
 
 const ToolDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getIconByName } = useIconMapping();
   
-  const tool = id ? toolsData[id] : null;
+  const { data: tool, isLoading, error } = useQuery({
+    queryKey: ['tool', id],
+    queryFn: () => id ? fetchToolById(id) : null,
+    enabled: !!id
+  });
   
-  if (!tool) {
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="max-w-5xl mx-auto flex items-center justify-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mr-3" />
+          <span className="text-lg">Loading tool details...</span>
+        </div>
+      </AppLayout>
+    );
+  }
+  
+  if (error || !tool) {
     return (
       <AppLayout>
         <div className="max-w-4xl mx-auto text-center py-12">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-4">Tool not found</h1>
-          <p className="text-muted-foreground mb-6">The AI tool you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mb-6">The AI tool you're looking for doesn't exist or couldn't be loaded.</p>
           <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
         </div>
       </AppLayout>
     );
   }
+  
+  const handleLaunch = async () => {
+    // Track usage when launching the tool
+    await trackToolUsage(tool.id);
+    
+    // If it's an external tool, open in a new tab
+    if (tool.external_url) {
+      window.open(tool.external_url, "_blank");
+    } else {
+      // For internal tools, navigate to the specific path
+      // In a real implementation, this might launch a specific UI for the tool
+      toast.info(`Launching ${tool.name}...`);
+    }
+  };
   
   return (
     <AppLayout>
@@ -102,7 +86,7 @@ const ToolDetail: React.FC = () => {
                 className="h-16 w-16 rounded-2xl flex items-center justify-center"
                 style={{ backgroundColor: `${tool.color}30` }}
               >
-                {tool.icon}
+                {getIconByName(tool.icon_name, 24)}
               </div>
               
               <div className="flex-1">
@@ -114,15 +98,17 @@ const ToolDetail: React.FC = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-                <Button>
+                <Button onClick={handleLaunch}>
                   Launch Tool
                 </Button>
-                <Button variant="outline" asChild>
-                  <a href={tool.externalUrl} target="_blank" rel="noopener noreferrer">
-                    Visit Website
-                    <ExternalLink size={14} className="ml-2" />
-                  </a>
-                </Button>
+                {tool.external_url && (
+                  <Button variant="outline" asChild>
+                    <a href={tool.external_url} target="_blank" rel="noopener noreferrer">
+                      Visit Website
+                      <ExternalLink size={14} className="ml-2" />
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -132,7 +118,7 @@ const ToolDetail: React.FC = () => {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2">
                 <h2 className="text-xl font-semibold mb-4">About {tool.name}</h2>
-                <p className="text-muted-foreground mb-6">{tool.longDescription}</p>
+                <p className="text-muted-foreground mb-6">{tool.description}</p>
                 
                 <h3 className="text-lg font-semibold mb-3">Key Features</h3>
                 <ul className="space-y-2 mb-6">

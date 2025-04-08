@@ -2,14 +2,25 @@
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategorySection from "@/components/dashboard/CategorySection";
 import FeaturedTools from "@/components/dashboard/FeaturedTools";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { fetchRecentlyUsedTools } from "@/services/aiToolsService";
+import AICard from "@/components/dashboard/AICard";
+import useIconMapping from "@/hooks/useIconMapping";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { getIconByName } = useIconMapping();
+  
+  const { data: recentTools, isLoading: isLoadingRecentTools } = useQuery({
+    queryKey: ['recentTools'],
+    queryFn: () => fetchRecentlyUsedTools(4),
+    enabled: !!user // Only fetch if user is logged in
+  });
   
   return (
     <AppLayout>
@@ -71,10 +82,34 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold">Recent Tools</h2>
             <Button variant="outline" size="sm">View History</Button>
           </div>
-          <div className="bg-card border border-border/50 rounded-xl p-6 text-center">
-            <p className="text-muted-foreground">You haven't used any tools recently</p>
-            <Button variant="link" className="mt-2">Explore tools</Button>
-          </div>
+          {isLoadingRecentTools ? (
+            <div className="flex items-center justify-center h-40 bg-card border border-border/50 rounded-xl">
+              <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+              <span>Loading your recent tools...</span>
+            </div>
+          ) : recentTools && recentTools.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {recentTools.map((tool) => (
+                <AICard
+                  key={tool.id}
+                  id={tool.id}
+                  name={tool.name}
+                  description={tool.description}
+                  icon={getIconByName(tool.icon_name)}
+                  color={tool.color}
+                  category={tool.category}
+                  isNew={tool.is_new}
+                  isPro={tool.is_pro}
+                  url={tool.url}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card border border-border/50 rounded-xl p-6 text-center">
+              <p className="text-muted-foreground">You haven't used any tools recently</p>
+              <Button variant="link" className="mt-2">Explore tools</Button>
+            </div>
+          )}
         </section>
       </div>
     </AppLayout>

@@ -2,8 +2,9 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { trackToolUsage } from "@/services/aiToolsService";
+import { toast } from "sonner";
 
 interface AICardProps {
   id: string;
@@ -30,7 +31,10 @@ const AICard: React.FC<AICardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    // Track the usage of this tool
+    await trackToolUsage(id);
+    
     if (url) {
       navigate(url);
     } else {
@@ -40,7 +44,7 @@ const AICard: React.FC<AICardProps> = ({
 
   return (
     <Card
-      className={`ai-card cursor-pointer h-full`}
+      className={`ai-card cursor-pointer h-full transition-all duration-200 hover:shadow-md hover:scale-[1.02]`}
       style={{ 
         backgroundColor: `${color}15`,
         borderColor: `${color}30`

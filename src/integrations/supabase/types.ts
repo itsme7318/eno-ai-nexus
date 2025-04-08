@@ -9,7 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      ai_tools: {
+        Row: {
+          category: string
+          color: string
+          created_at: string | null
+          description: string
+          external_url: string | null
+          features: string[] | null
+          icon_name: string
+          id: string
+          is_new: boolean | null
+          is_pro: boolean | null
+          name: string
+          pricing: string | null
+          rating: number | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          category: string
+          color: string
+          created_at?: string | null
+          description: string
+          external_url?: string | null
+          features?: string[] | null
+          icon_name: string
+          id?: string
+          is_new?: boolean | null
+          is_pro?: boolean | null
+          name: string
+          pricing?: string | null
+          rating?: number | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          color?: string
+          created_at?: string | null
+          description?: string
+          external_url?: string | null
+          features?: string[] | null
+          icon_name?: string
+          id?: string
+          is_new?: boolean | null
+          is_pro?: boolean | null
+          name?: string
+          pricing?: string | null
+          rating?: number | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      user_tools: {
+        Row: {
+          id: string
+          last_used: string | null
+          tool_id: string
+          use_count: number | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_used?: string | null
+          tool_id: string
+          use_count?: number | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_used?: string | null
+          tool_id?: string
+          use_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tools_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "ai_tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

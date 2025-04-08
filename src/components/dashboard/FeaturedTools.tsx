@@ -1,97 +1,43 @@
 
 import React from "react";
-import { 
-  Code, 
-  MessagesSquare, 
-  Brush, 
-  FileText, 
-  Presentation, 
-  Brain, 
-  PenTool, 
-  Mail
-} from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import AICard from "@/components/dashboard/AICard";
-
-const featuredTools = [
-  {
-    id: "lovable-ai",
-    name: "Lovable AI",
-    description: "Build React web applications through simple conversations.",
-    icon: <Code size={20} />,
-    color: "#8B5CF6",
-    category: "Development",
-    isPro: true,
-    url: "/tool/lovable-ai"
-  },
-  {
-    id: "gamma-ai",
-    name: "Gamma AI",
-    description: "Create beautiful presentations in seconds using AI.",
-    icon: <Presentation size={20} />,
-    color: "#F59E0B",
-    category: "Presentation",
-    url: "/tool/gamma-ai"
-  },
-  {
-    id: "claude-ai",
-    name: "Claude AI",
-    description: "Advanced AI assistant with reasoning and coding abilities.",
-    icon: <Brain size={20} />,
-    color: "#10B981",
-    category: "Assistant",
-    isNew: true,
-    url: "/tool/claude-ai"
-  },
-  {
-    id: "chatgpt",
-    name: "ChatGPT",
-    description: "OpenAI's chatbot for conversation and content creation.",
-    icon: <MessagesSquare size={20} />,
-    color: "#6366F1",
-    category: "Chat",
-    url: "/tool/chatgpt"
-  },
-  {
-    id: "midjourney",
-    name: "Midjourney",
-    description: "Generate stunning art and images from text descriptions.",
-    icon: <Brush size={20} />,
-    color: "#EC4899",
-    category: "Image Generation",
-    isPro: true,
-    url: "/tool/midjourney"
-  },
-  {
-    id: "jasper-ai",
-    name: "Jasper AI",
-    description: "Create marketing copy, blog posts and social media content.",
-    icon: <PenTool size={20} />,
-    color: "#0EA5E9",
-    category: "Writing",
-    url: "/tool/jasper-ai"
-  },
-  {
-    id: "perplexity",
-    name: "Perplexity AI",
-    description: "AI search engine with comprehensive, accurate answers.",
-    icon: <FileText size={20} />,
-    color: "#14B8A6",
-    category: "Research",
-    isNew: true,
-    url: "/tool/perplexity"
-  },
-  {
-    id: "rye",
-    name: "Rye",
-    description: "Generate personalized cold emails for your outreach campaigns.",
-    icon: <Mail size={20} />,
-    color: "#F43F5E",
-    category: "Marketing",
-    url: "/tool/rye"
-  }
-];
+import { AITool, fetchAllAITools } from "@/services/aiToolsService";
+import { useQuery } from "@tanstack/react-query";
+import useIconMapping from "@/hooks/useIconMapping";
 
 const FeaturedTools: React.FC = () => {
+  const { getIconByName } = useIconMapping();
+  const { data: tools, isLoading, error } = useQuery({
+    queryKey: ['featuredTools'],
+    queryFn: fetchAllAITools
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">Loading AI tools...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/10 p-6 rounded-lg flex items-center">
+        <AlertCircle className="h-6 w-6 text-destructive mr-2" />
+        <p>Failed to load AI tools. Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (!tools || tools.length === 0) {
+    return <p className="text-muted-foreground">No AI tools available.</p>;
+  }
+
+  // Limit to 8 tools for the featured section
+  const featuredTools = tools.slice(0, 8);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
       {featuredTools.map((tool) => (
@@ -100,11 +46,11 @@ const FeaturedTools: React.FC = () => {
           id={tool.id}
           name={tool.name}
           description={tool.description}
-          icon={tool.icon}
+          icon={getIconByName(tool.icon_name)}
           color={tool.color}
           category={tool.category}
-          isNew={tool.isNew}
-          isPro={tool.isPro}
+          isNew={tool.is_new}
+          isPro={tool.is_pro}
           url={tool.url}
         />
       ))}
