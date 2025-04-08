@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +15,7 @@ interface AICardProps {
   isNew?: boolean;
   isPro?: boolean;
   url?: string;
+  external_url?: string;
 }
 
 const AICard: React.FC<AICardProps> = ({
@@ -28,6 +28,7 @@ const AICard: React.FC<AICardProps> = ({
   isNew = false,
   isPro = false,
   url,
+  external_url,
 }) => {
   const navigate = useNavigate();
 
@@ -35,6 +36,13 @@ const AICard: React.FC<AICardProps> = ({
     // Track the usage of this tool
     await trackToolUsage(id);
     
+    // Check if there's an external URL to navigate to
+    if (external_url) {
+      window.open(external_url, "_blank");
+      return;
+    }
+    
+    // Otherwise navigate internally
     if (url) {
       navigate(url);
     } else {

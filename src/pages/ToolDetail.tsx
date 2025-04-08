@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
@@ -52,9 +51,11 @@ const ToolDetail: React.FC = () => {
     // If it's an external tool, open in a new tab
     if (tool.external_url) {
       window.open(tool.external_url, "_blank");
+    } else if (tool.url) {
+      // For internal tools with specific paths
+      navigate(tool.url);
     } else {
-      // For internal tools, navigate to the specific path
-      // In a real implementation, this might launch a specific UI for the tool
+      // Fallback message if no URL is available
       toast.info(`Launching ${tool.name}...`);
     }
   };

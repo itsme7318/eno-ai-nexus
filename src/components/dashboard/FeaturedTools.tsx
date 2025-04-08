@@ -52,6 +52,7 @@ const FeaturedTools: React.FC = () => {
           isNew={tool.is_new}
           isPro={tool.is_pro}
           url={tool.url}
+          external_url={tool.external_url}
         />
       ))}
     </div>
