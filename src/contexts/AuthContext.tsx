@@ -101,12 +101,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("User already exists with this email");
       }
       
-      // Create new user
+      // Create new user with a default avatar
       const newUser = {
         id: String(mockUsers.length + 1),
         email,
         password,
         name,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`, // Default avatar generated from name
       };
       
       mockUsers.push(newUser);
