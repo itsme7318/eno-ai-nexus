@@ -1,12 +1,13 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface User {
   id: string;
   email: string;
-  name: string;
-  avatar?: string;
+  name?: string;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -15,65 +16,88 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const mockUsers = [
-  {
-    id: "1",
-    email: "demo@example.com",
-    password: "password",
-    name: "Demo User",
-    avatar: "https://avatars.githubusercontent.com/u/1234567?v=4"
-  }
-];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check for existing session
   useEffect(() => {
-    // Check for existing session in localStorage
-    const storedUser = localStorage.getItem("eno_user");
-    
-    if (storedUser) {
+    const getSession = async () => {
+      setIsLoading(true);
+      
       try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (session) {
+          const { user: supabaseUser } = session;
+          
+          // Format user object
+          const formattedUser: User = {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            name: supabaseUser.user_metadata?.name,
+            avatar_url: supabaseUser.user_metadata?.avatar_url,
+          };
+          
+          setUser(formattedUser);
+        }
       } catch (error) {
-        console.error("Failed to parse stored user data", error);
-        localStorage.removeItem("eno_user");
+        console.error("Error getting session:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    getSession();
     
-    setIsLoading(false);
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session && session.user) {
+          const formattedUser: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name,
+            avatar_url: session.user.user_metadata?.avatar_url,
+          };
+          
+          setUser(formattedUser);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      const foundUser = mockUsers.find(
-        (u) => u.email === email && u.password === password
-      );
-      
-      if (!foundUser) {
-        throw new Error("Invalid email or password");
+      if (error) {
+        throw error;
       }
-      
-      // Remove password from user object
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem("eno_user", JSON.stringify(userWithoutPassword));
-      
+
       toast({
         title: "Welcome back!",
-        description: `Logged in as ${foundUser.name}`,
+        description: `Logged in successfully`,
       });
     } catch (error) {
       toast({
@@ -91,31 +115,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user exists
-      const existingUser = mockUsers.find((u) => u.email === email);
-      
-      if (existingUser) {
-        throw new Error("User already exists with this email");
-      }
-      
-      // Create new user with a default avatar
-      const newUser = {
-        id: String(mockUsers.length + 1),
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        name,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`, // Default avatar generated from name
-      };
+        options: {
+          data: {
+            name,
+            avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+          },
+        },
+      });
       
-      mockUsers.push(newUser);
-      
-      // Remove password from user object for state
-      const { password: _, ...userWithoutPassword } = newUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem("eno_user", JSON.stringify(userWithoutPassword));
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Registration successful!",
@@ -133,12 +146,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("eno_user");
-    toast({
-      title: "Logged out successfully",
-    });
+  const logout = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
+      toast({
+        title: "Logged out successfully",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Sign out failed",
+        description: "An error occurred while signing out",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
