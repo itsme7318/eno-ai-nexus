@@ -84,11 +84,11 @@ const AppSidebar: React.FC = () => {
         <div className="p-4">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
             <Avatar className="h-9 w-9">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
-              <AvatarFallback>{user?.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarImage src={user?.avatar_url} alt={user?.name} />
+              <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
             <Button 

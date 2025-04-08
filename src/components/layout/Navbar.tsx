@@ -60,8 +60,8 @@ const Navbar: React.FC = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
               <Avatar className="h-7 w-7">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <ChevronDown size={16} />
             </Button>
